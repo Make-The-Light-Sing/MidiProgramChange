@@ -7,16 +7,6 @@
 USB Usb;
 USBH_MIDI Midi(&Usb);
 
-byte PatchA1 = 0x31;
-byte PatchA2 = 0x2F;
-byte PatchB1 = 0x30;
-byte PatchB2 = 0x2B;
-byte PatchC1 = 0x2D;
-byte PatchC2 = 0x2A;
-byte PatchD1 = 0x2C;
-byte PatchD2 = 0x29;
-byte PatchOff = 0x2E;
-
 byte cmd;
 byte data1;
 byte data2;
@@ -52,6 +42,10 @@ void setup() {
   #endif
 }
 
+bool received = false;
+long time = 0;
+long debounce = 1000;
+
 void loop() {
   // put your main code here, to run repeatedly:
     if (Serial.available() > 0) 
@@ -62,25 +56,17 @@ void loop() {
         cmd = Serial.read();
         data1 = Serial.read();
         data2 = Serial.read();
-
-        switch(cmd) {
-          case 0 : SendMIDI(PatchA1);
-            break;
-          case 1 : SendMIDI(PatchA2);
-            break;
-          case 2 : SendMIDI(PatchB1);
-            break;
-          case 3 : SendMIDI(PatchB2);
-            break;
-          case 4 : SendMIDI(PatchC1);
-            break;
-          case 5 : SendMIDI(PatchC2);
-            break;
-          case 6 : SendMIDI(PatchD1);
-            break;
-          case 7 : SendMIDI(PatchD2);
-            break;
+       
+        if (millis() - time > debounce) {
+          if (received) {
+            SendMIDI(cmd);
+            received = false;
+            time = millis();
+          } else {
+            received = true;
+          }
         }
+
         #ifdef DEBUG
           digitalWrite(ledpin, LOW);
         #endif
